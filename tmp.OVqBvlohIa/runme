@@ -1,0 +1,4 @@
+oci -d --profile SCL compute instance update --instance-id $INSTANCE_ID \
+ --launch-options file:///home/joavila/oci/code/tmp.OVqBvlohIa/launch-options.json \
+ --shape "VM.Standard3.Flex" \
+ --shape-config file:///home/joavila/oci/code/tmp.OVqBvlohIa/shape-config.json
