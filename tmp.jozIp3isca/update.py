@@ -28,17 +28,16 @@ def main():
         assert instance, f'No instance found'
         assert instance.data, f'No instance data found'
         instance_data = instance.data
-        logger.debug(f'Current instance id is: {instance_data.id}')
-        logger.debug(f'Current instance shape details are: {instance_data.shape_config}')
+        logger.info(f'Current instance id is: {instance_data.id}')
         try:
             if TARGETTED_NETWORK_TYPE == instance_data.launch_options.network_type and TARGETTED_SHAPE == instance_data.shape:
                 logger.warning(f'Shape and network type already set to expected value')
                 continue
             elif TARGETTED_NETWORK_TYPE == instance_data.launch_options.network_type:
-                logger.debug(f'Network type already set to expected value: {instance_data.launch_options}')
+                logger.warning(f'Network type already set to expected value: {instance_data.launch_options}')
                 new_instance_details=oci.core.models.UpdateInstanceDetails(shape=TARGETTED_SHAPE)
             elif TARGETTED_SHAPE == instance_data.shape_config.shape:
-                logger.debug(f'Shape already set to expected value: {instance_data.shape}')
+                logger.warning(f'Shape already set to expected value: {instance_data.shape}')
                 new_launch_options = oci.core.models.UpdateLaunchOptions(network_type=TARGETTED_NETWORK_TYPE)
                 new_instance_details = oci.core.models.UpdateInstanceDetails(launch_options=new_launch_options)
             else:
@@ -49,8 +48,11 @@ def main():
 
             update_instance_response = core_client.update_instance(instance_id=affected_instance_id, update_instance_details=new_instance_details)
             assert update_instance_response.data, f'No response data'
-            assert update_instance_response.data.status == 200, f'Unexpected status is: {update_instance_response.data.status}'
-            logger.debug(f'Updated instance response is: {update_instance_response.data}')
+            if 200 == update_instance_response.data.status:
+                logger.info(f'Updated instance response is: {update_instance_response.data}') # TODO Display new shape details
+                logger.info(f'Previous instance shape details were: {instance_data.shape_config}')
+            else:
+                logger.error(f'Unexpected status is: {update_instance_response.data.status}')
         except oci.exceptions.ServiceError as err:
             logger.error(f'Unexpected error {err}')
 
