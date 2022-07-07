@@ -16,6 +16,12 @@ def init_config():
     config = oci.config.from_file(CONFIG_FILE, PROFILE)
     return config
 
+def spot_diffs(a, b):
+    if a.ocpus == b.ocpus:
+        logger.debug(f'OCPUs count matches')
+    else:
+        logger.warning(f'Different values for OCPUs: {a.ocpus} <> {b.ocpus}')
+
 def main():
     # Handy
     TARGETTED_NETWORK_TYPE = oci.core.models.UpdateLaunchOptions.NETWORK_TYPE_PARAVIRTUALIZED
@@ -53,8 +59,10 @@ def main():
                 assert update_instance_response.data, f'No response data'
                 if 200 == update_instance_response.status:
                     updated_instance = update_instance_response.data
-                    logger.info(f'Updated instance response is: {updated_instance}') # TODO Display new shape details
-                    logger.info(f'Previous instance shape details were: {instance_data.shape_config}')
+                    logger.debug(f'Updated instance response is: {updated_instance}') # TODO Display new shape details
+                    logger.debug(f'Previous instance shape details were: {instance_data.shape_config}')
+                    spot_diffs(instance_data.shape_config, updated_instance.shape_config)
+                    spot_diffs(updated_instance.shape_config, instance_data.shape_config)
                 else:
                     logger.error(f'Unexpected status is: {update_instance_response.status}')
             except oci.exceptions.ServiceError as err:
